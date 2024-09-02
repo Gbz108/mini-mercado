@@ -1,38 +1,30 @@
-flutter create supermercado_app
-cd supermercado_app
-lib/
-main.dart (Arquivo principal)
-models/
-product.dart (Modelo de Produto)
-screens/
-cart_screen.dart (Tela do Carrinho)
-checkout_screen.dart (Tela de Checkout)
-product_list_screen.dart (Lista de Produtos)
-widgets/
-product_item.dart (Widget para exibir um item de produto)
-
-
-# Implementando o Modelo de Produto
-class Product {
-  final String id;
-  final String title;
-  final double price;
-  final String imageUrl;
-
-  Product({
-    required this.id,
-    required this.title,
-    required this.price,
-    required this.imageUrl,
-  });
-}
-#Implementando a Tela de Lista de Produtos
 import 'package:flutter/material.dart';
-import '../models/product.dart';
-import '../widgets/product_item.dart';
 
-class ProductListScreen extends StatelessWidget {
-  final List<Product> products = [
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Carrinho de Compras',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        brightness: Brightness.dark,
+      ),
+      home: MyHomePage(),
+    );
+  }
+}
+
+class MyHomePage extends StatefulWidget {
+  @override
+  _MyHomePageState createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  List<Product> _products = [
     Product(
       id: 'p1',
       title: 'Maçã',
@@ -48,16 +40,41 @@ class ProductListScreen extends StatelessWidget {
     // Adicione mais produtos aqui
   ];
 
+  List<Product> _cart = [];
+
+  void _addToCart(Product product) {
+    setState(() {
+      _cart.add(product);
+    });
+  }
+
+  void _removeFromCart(Product product) {
+    setState(() {
+      _cart.remove(product);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Supermercado'),
+        title: Text('Carrinho de Compras'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.shopping_cart),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => CartScreen(_cart)),
+              );
+            },
+          ),
+        ],
       ),
       body: GridView.builder(
         padding: const EdgeInsets.all(10.0),
-        itemCount: products.length,
-        itemBuilder: (ctx, i) => ProductItem(products[i]),
+        itemCount: _products.length,
+        itemBuilder: (ctx, i) => ProductItem(_products[i], _addToCart),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
           childAspectRatio: 3 / 2,
@@ -68,14 +85,12 @@ class ProductListScreen extends StatelessWidget {
     );
   }
 }
-#Implementando o Widget de Item de Produto
-import 'package:flutter/material.dart';
-import '../models/product.dart';
 
 class ProductItem extends StatelessWidget {
   final Product product;
+  final Function _addToCart;
 
-  ProductItem(this.product);
+  ProductItem(this.product, this._addToCart);
 
   @override
   Widget build(BuildContext context) {
@@ -88,132 +103,55 @@ class ProductItem extends StatelessWidget {
           icon: Icon(Icons.shopping_cart),
           color: Theme.of(context).accentColor,
           onPressed: () {
-            // Adicionar item ao carrinho
+            _addToCart(product);
           },
         ),
       ),
     );
   }
 }
-#Implementando a Tela do Carrinho
-import 'package:flutter/material.dart';
+
+class Product {
+  final String id;
+  final String title;
+  final double price;
+  final String imageUrl;
+
+  Product({
+    required this.id,
+    required this.title,
+    required this.price,
+    required this.imageUrl,
+  });
+}
 
 class CartScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Seu Carrinho'),
-      ),
-      body: Column(
-        children: [
-          Card(
-            margin: EdgeInsets.all(15),
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Text(
-                    'Total',
-                    style: TextStyle(fontSize: 20),
-                  ),
-                  Spacer(),
-                  Chip(
-                    label: Text(
-                      '\$199.99',
-                      style: TextStyle(
-                        color: Theme.of(context).primaryTextTheme.headline6!.color,
-                      ),
-                    ),
-                    backgroundColor: Theme.of(context).primaryColor,
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      // Navegar para a tela de checkout
-                    },
-                    child: Text('COMPRAR AGORA'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          SizedBox(height: 10),
-          Expanded(
-            child: ListView.builder(
-              itemCount: 5, // Número de itens no carrinho
-              itemBuilder: (ctx, i) => ListTile(
-                leading: CircleAvatar(
-                  backgroundImage: NetworkImage('https://link_para_imagem_produto.jpg'),
-                ),
-                title: Text('Produto $i'),
-                subtitle: Text('Total: \$19.99'),
-                trailing: Text('1x \$19.99'),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-# Implementando a Tela de Checkout
-import 'package:flutter/material.dart';
+  final List<Product> _cart;
 
-class CheckoutScreen extends StatelessWidget {
+  CartScreen(this._cart);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Checkout'),
+        title: Text('Carrinho de Compras'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(15.0),
-        child: Column(
-          children: [
-            Text('Resumo do Pedido', style: TextStyle(fontSize: 20)),
-            SizedBox(height: 20),
-            Text('Produto 1: \$19.99'),
-            Text('Produto 2: \$29.99'),
-            // Adicione mais itens aqui
-            Spacer(),
-            ElevatedButton(
-              onPressed: () {
-                // Implementar lógica de pagamento
-              },
-              child: Text('FINALIZAR COMPRA'),
-            ),
-          ],
+      body: ListView.builder(
+        itemCount: _cart.length,
+        itemBuilder: (ctx, i) => ListTile(
+          leading: CircleAvatar(
+            backgroundImage: NetworkImage(_cart[i].imageUrl),
+          ),
+          title: Text(_cart[i].title),
+          subtitle: Text('Preço: ${_cart[i].price}'),
+          trailing: IconButton(
+            icon: Icon(Icons.remove),
+            onPressed: () {
+              // Remover do carrinho
+            },
+          ),
         ),
       ),
     );
   }
 }
-#Configurando o Arquivo main.dart
-import 'package:flutter/material.dart';
-import './screens/product_list_screen.dart';
-import './screens/cart_screen.dart';
-import './screens/checkout_screen.dart';
-
-void main() {
-  runApp(SupermercadoApp());
-}
-
-class SupermercadoApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Supermercado',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        accentColor: Colors.orange,
-      ),
-      home: ProductListScreen(),
-      routes: {
-        '/cart': (ctx) => CartScreen(),
-        '/checkout': (ctx) => CheckoutScreen(),
-      },
-    );
-  }
-}
-
