@@ -65,7 +65,7 @@ class _MyHomePageState extends State<MyHomePage> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => CartScreen(_cart)),
+                MaterialPageRoute(builder: (context) => CartScreen(_cart, _removeFromCart)),
               );
             },
           ),
@@ -101,7 +101,6 @@ class ProductItem extends StatelessWidget {
         title: Text(product.title, textAlign: TextAlign.center),
         trailing: IconButton(
           icon: Icon(Icons.shopping_cart),
-          color: Theme.of(context).accentColor,
           onPressed: () {
             _addToCart(product);
           },
@@ -127,8 +126,9 @@ class Product {
 
 class CartScreen extends StatelessWidget {
   final List<Product> _cart;
+  final Function _removeFromCart;
 
-  CartScreen(this._cart);
+  CartScreen(this._cart, this._removeFromCart);
 
   @override
   Widget build(BuildContext context) {
@@ -147,9 +147,72 @@ class CartScreen extends StatelessWidget {
           trailing: IconButton(
             icon: Icon(Icons.remove),
             onPressed: () {
-              // Remover do carrinho
+              _removeFromCart(_cart[i]);
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => CartScreen(_cart, _removeFromCart)),
+              );
             },
           ),
+        ),
+      ),
+    #tela de checkout
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => CheckoutScreen(_cart)),
+          );
+        },
+ 
+      ),
+    );
+  }
+}
+
+class CheckoutScreen extends StatelessWidget {
+  final List<Product> _cart;
+
+  CheckoutScreen(this._cart);
+
+  @override
+  Widget build(BuildContext context) {
+    double totalPrice = _cart.fold(0, (sum, product) => sum + product.price);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Checkout'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          children: [
+            Text('Resumo do Pedido'),
+            SizedBox(height: 20),
+                        ListView.builder(
+              shrinkWrap: true,
+              physics: ClampingScrollPhysics(),
+              itemCount: _cart.length,
+              itemBuilder: (ctx, i) => ListTile(
+                leading: CircleAvatar(
+                  backgroundImage: NetworkImage(_cart[i].imageUrl),
+                ),
+                title: Text(_cart[i].title),
+                subtitle: Text('Preço: ${_cart[i].price}'),
+              ),
+            ),
+            SizedBox(height: 20),
+            Text('Total: R\$ ${totalPrice.toStringAsFixed(2)}'),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                // Implemente a lógica de pagamento aqui
+                print('Pagamento realizado com sucesso!');
+              },
+              child: Text('Realizar Pagamento'),
+            ),
+          ],
         ),
       ),
     );
